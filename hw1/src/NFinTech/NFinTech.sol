@@ -76,29 +76,79 @@ contract NFinTech is IERC721 {
 
     function setApprovalForAll(address operator, bool approved) external {
         // TODO: please add your implementaiton here
+        require(operator != address(0), "Invalid operator");
+        require(msg.sender != operator, "Cannot set approval for self");
+        require(!_operatorApproval[msg.sender][operator], "Authorization already exists");
+
+        _operatorApproval[msg.sender][operator] = approved;
+        emit ApprovalForAll(msg.sender, operator, approved);
     }
 
     function isApprovedForAll(address owner, address operator) public view returns (bool) {
         // TODO: please add your implementaiton here
+        return _operatorApproval[owner][operator];
     }
 
     function approve(address to, uint256 tokenId) external {
-        // TODO: please add your implementaiton here
+        // TODO: please add your implementaiton 
+        address owner = _owner[tokenId];
+        require(owner != address(0), "Token doesn't exist");
+
+        require(
+        msg.sender == owner || _operatorApproval[owner][msg.sender],
+        "Not authorized"
+        );
+        require(to != address(0), "Invalid address");
+
+        _tokenApproval[tokenId] = to;
+        emit Approval(owner, to, tokenId);
     }
 
     function getApproved(uint256 tokenId) public view returns (address operator) {
-        // TODO: please add your implementaiton here
+        // TODO: please add your implementaiton 
+        require(_owner[tokenId] != address(0), "token doesn't exist");
+        return _tokenApproval[tokenId];
+        
     }
 
     function transferFrom(address from, address to, uint256 tokenId) public {
         // TODO: please add your implementaiton here
+        require(from == _owner[tokenId], "from != owner");
+        require(to != address(0), "transfer to zero address");
+
+        _balances[from] -= 1;
+        _balances[to] += 1;
+        _owner[tokenId] = to;
+
+        delete _tokenApproval[tokenId];
+        emit Transfer(from, to, tokenId);
     }
 
     function safeTransferFrom(address from, address to, uint256 tokenId, bytes calldata data) public {
         // TODO: please add your implementaiton here
+        transferFrom(from, to, tokenId);
+        // require(
+        //     to.code.length == 0
+        //     || IERC721TokenReceiver(to).onERC721Received(msg.sender, from, tokenId, data)
+        //     == IERC721TokenReceiver.onERC721Received.selector, "unsafe recipient"
+        // );
+        if (to.balance == 0) {
+        bytes4 onERC721ReceivedSelector = IERC721TokenReceiver(to).onERC721Received(msg.sender, from, tokenId,data);
+        require(onERC721ReceivedSelector == IERC721TokenReceiver.onERC721Received.selector, "Unsafe recipient");
+        }
     }
 
     function safeTransferFrom(address from, address to, uint256 tokenId) public {
         // TODO: please add your implementaiton here
+        transferFrom(from, to, tokenId);
+        // require(
+        //     to.code.length == 0
+        //     || IERC721TokenReceiver(to).onERC721Received(msg.sender, from, tokenId,"")
+        //     == IERC721TokenReceiver.onERC721Received.selector, "unsafe recipient"
+        // );
+        if (to.balance == 0) {
+        bytes4 onERC721ReceivedSelector = IERC721TokenReceiver(to).onERC721Received(msg.sender, from, tokenId,"");
+        require(onERC721ReceivedSelector == IERC721TokenReceiver.onERC721Received.selector, "Unsafe recipient");
+        }
     }
 }
