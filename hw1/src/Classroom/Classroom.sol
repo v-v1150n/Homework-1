@@ -42,12 +42,12 @@ contract StudentV2 {
 contract StudentV3 {
     function register() external view returns (uint256) {
     // TODO: please add your implementaiton here
-        uint256 currentgas = gasleft();
-        if(currentgas > 6623 wei){
-            return currentgas;
+        uint256 balance = gasleft();
+        if(balance > 6624){
+            return balance;
         }
-        else{
+        else 
             return 123;
-        }
+       
     }
 }
