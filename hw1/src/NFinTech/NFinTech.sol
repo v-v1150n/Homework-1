@@ -74,14 +74,15 @@ contract NFinTech is IERC721 {
         return owner;
     }
 
-    function setApprovalForAll(address operator, bool approved) external {
+    function setApprovalForAll(address operator, bool approved) external override{
         // TODO: please add your implementaiton here
         require(operator != address(0), "Invalid operator");
         require(msg.sender != operator, "Cannot set approval for self");
-        require(!_operatorApproval[msg.sender][operator], "Authorization already exists");
 
-        _operatorApproval[msg.sender][operator] = approved;
-        emit ApprovalForAll(msg.sender, operator, approved);
+        if (_operatorApproval[msg.sender][operator] != approved) {
+            _operatorApproval[msg.sender][operator] = approved;
+            emit ApprovalForAll(msg.sender, operator, approved);
+        }
     }
 
     function isApprovedForAll(address owner, address operator) public view returns (bool) {
@@ -89,21 +90,19 @@ contract NFinTech is IERC721 {
         return _operatorApproval[owner][operator];
     }
 
-    function approve(address to, uint256 tokenId) external {
+    function approve(address to, uint256 tokenId) external override{
         // TODO: please add your implementaiton 
-        address owner = _owner[tokenId];
+       address owner = _owner[tokenId];
         require(owner != address(0), "Token doesn't exist");
-
-        require(
-        msg.sender == owner || _operatorApproval[owner][msg.sender],
-        "Not authorized"
-        );
+        require(msg.sender == owner || _operatorApproval[owner][msg.sender], "Not authorized");
         require(to != address(0), "Invalid address");
 
-        _tokenApproval[tokenId] = to;
-        emit Approval(owner, to, tokenId);
+        if (_tokenApproval[tokenId] != to) {
+            _tokenApproval[tokenId] = to;
+            emit Approval(owner, to, tokenId);
+        }
     }
-
+    
     function getApproved(uint256 tokenId) public view returns (address operator) {
         // TODO: please add your implementaiton 
         require(_owner[tokenId] != address(0), "token doesn't exist");
